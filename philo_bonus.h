@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   philo.h                                            :+:      :+:    :+:   */
+/*   philo_bonus.h                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sbadr <sbadr@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/16 14:45:10 by sbadr             #+#    #+#             */
-/*   Updated: 2023/05/28 20:54:54 by sbadr            ###   ########.fr       */
+/*   Updated: 2023/05/28 22:33:55 by sbadr            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PHILO_H
-# define PHILO_H
+#ifndef PHILO_BONUS_H
+# define PHILO_BONUS_H
 
 # include <stdio.h>
 # include <pthread.h>
@@ -22,6 +22,8 @@
 # include <pthread.h>
 # include <unistd.h>
 # include <sys/time.h>
+# include <semaphore.h>
+# include <unistd.h>
 
 typedef struct data{
 	int				philos_nb;
@@ -31,9 +33,9 @@ typedef struct data{
 	int				is_dead_yet;
 	int				i;
 	long long		eat;
-	long long		eating_times;
-	pthread_mutex_t	print;
-	pthread_mutex_t	vars;
+	sem_t			*fork;
+	sem_t			*print;
+	int				eating_times;
 }				t_data;
 
 typedef struct philo{
@@ -43,12 +45,11 @@ typedef struct philo{
 	long long		eated;
 	int				is_alive;
 	t_data			*data;
-	pthread_mutex_t	fork;
 	struct philo	*next;
 }t_philo;
 
 long long	get_time(void);
-t_data		*ft_new_data(char **av, pthread_mutex_t print, int *a);
+t_data		*ft_new_data(char **av, sem_t print, int *a);
 t_philo		*ft_new(t_data *data, long long start_time);
 int			ft_sleep(long long sl);
 int			ft_atoi(char *str);
