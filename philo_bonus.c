@@ -6,16 +6,60 @@
 /*   By: sbadr <sbadr@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/28 21:50:43 by sbadr             #+#    #+#             */
-/*   Updated: 2023/05/28 22:34:14 by sbadr            ###   ########.fr       */
+/*   Updated: 2023/06/06 16:11:38 by sbadr            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo_bonus.h"
 
-void	ft_actions(t_philo *philo, int action)
+long long	get_time(void)
 {
+	struct timeval	tv;
+	long long		time_in_mill;
+
+	gettimeofday(&tv, NULL);
+	time_in_mill = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000;
+	return (time_in_mill);
+}
+
+void	check_end(t_philo *philo, sem_t *print)
+{
+	int	i;
+
+	i = 0;	
+	if (philo ->data->philos_nb % 2)
+		i = 10;
+	if (get_time() - philo->eated > philo->data->time_to_die - i)
+	{
+		sem_wait(print);
+		printf("%lld %d died\n", get_time() - philo->start_time, philo->id);
+		exit(0);
+	}
+	else if (philo->data->eat && philo->data->eating_times > philo->data->eat)
+	{
+		sem_wait(print);
+		exit(0);
+	}
+}
+
+void	ft_sleep(long long sl, t_philo *philo, sem_t *print)
+{
+	long long	time;
+
+	time = get_time();
+	while (get_time() - time < sl)
+	{
+		check_end(philo, print);
+		usleep(100);
+	}
+}
+
+void	ft_actions(t_philo *philo, int action, sem_t *fork, sem_t *print)
+{
+	sem_wait(print);
 	if (action == 0)
 	{
+		sem_wait(fork);
 		printf("%lld %d has taken a fork\n", get_time() - philo->start_time,
 			philo->id);
 	}
@@ -27,87 +71,44 @@ void	ft_actions(t_philo *philo, int action)
 	else if (action == 3)
 		printf("%lld %d is thinking\n", get_time() - philo->start_time,
 			philo->id);
+	sem_post(print);
 }
 
-void	taking_forks(t_philo *philo)
+void	philosopher_routine(t_philo *philo, sem_t *fork, sem_t *print)
 {
-	ft_actions(philo, 0);
-	ft_actions(philo, 0);
-}
-
-void	*philosopher_routine(void	*ar)
-{
-	t_philo	*philo;
-
-	philo = (t_philo *)ar;
-	if (philo->id % 2 == 0)
-		usleep(100);
 	while (1)
 	{
-		if (philo->data->is_dead_yet == 1)
-			return (NULL);
-		taking_forks(philo);
+		ft_actions(philo, 0, fork, print);
+		while (philo->data->philos_nb == 1)
+			check_end(philo, print);
+		ft_actions(philo, 0, fork, print);
 		philo->data->eating_times++;
-		ft_actions(philo, 1);
+		ft_actions(philo, 1, fork, print);
 		philo->eated = get_time();
-		ft_sleep(philo->data->time_to_eat);
-		ft_actions(philo, 2);
-		ft_sleep(philo->data->time_to_sleep);
-		ft_actions(philo, 3);
+		ft_sleep(philo->data->time_to_eat, philo, print);
+		sem_post(fork);
+		sem_post(fork);
+		ft_actions(philo, 2, fork, print);
+		ft_sleep(philo->data->time_to_sleep, philo, print);
+		ft_actions(philo, 3, fork, print);
 	}
 }
-
-void	check_end(t_philo *philo, char **av, t_data *data, int *a)
-{
-	while (1)
-	{
-		if (get_time() - philo->eated > philo->data->time_to_die)
-		{
-			printf("%lld %d died\n", get_time() - philo->start_time, philo->id);
-			*a = 1;
-			break ;
-		}
-		else if (av[5])
-		{
-			if (data->eating_times >= ft_atoi(av[5]) * ft_atoi(av[1]))
-			{
-				*a = 1;
-				break ;
-			}
-		}
-		philo = philo ->next;
-		usleep(100);
-	}
-}
-
 
 t_philo	*ft_new(t_data *data, long long start_time)
 {
 	static int		i;
-	sem_t			forks;
 	t_philo			*philo;
-	pid_t			pid;
 
-	pid = fork();
-	if (pid == 0)
-	{
-		philo = malloc(sizeof(t_philo));
-		if (!philo)
-			return (NULL);
-		if (i == 0)
-			i = 1;
-		sem_init(&fork, 1, 1);
-		philo->eated = get_time();
-		philo->id = i++;
-		philo->start_time = start_time;
-		philo->data = data;
-		return (philo);
-	}
 	philo = malloc(sizeof(t_philo));
 	if (!philo)
 		return (NULL);
 	if (i == 0)
 		i = 1;
+	philo->eated = get_time();
+	philo->id = i++;
+	philo->start_time = start_time;
+	philo->data = data;
+	return (philo);
 }
 
 t_philo	*creat_philos(char **av, t_data *data)
@@ -133,16 +134,13 @@ t_philo	*creat_philos(char **av, t_data *data)
 	return (tmp);
 }
 
-t_data	*ft_new_data(char **av, sem_t print, int *a)
+t_data	*ft_new_data(char **av)
 {
 	t_data			*data;
-	sem_t			fork;
 
 	data = malloc(sizeof(t_data));
 	if (!data)
 		return (NULL);
-	sem_init(&fork, 1, 1);
-	sem_init(&print, 1, 1);
 	data->philos_nb = ft_atoi(av[1]);
 	data->time_to_die = ft_atoi(av[2]);
 	data->time_to_eat = ft_atoi(av[3]);
@@ -151,37 +149,38 @@ t_data	*ft_new_data(char **av, sem_t print, int *a)
 		data->eat = ft_atoi(av[5]);
 	data->i = 1;
 	data->eating_times = 0;
-	data->is_dead_yet = *a;
-	data->fork = fork;
-	data->print = print;
 	return (data);
 }
 
-int	main(int ac, char **av)
+int main(int ac, char **av)
 {
-	t_philo			*philo;
-	t_philo			*philo1;
-	t_data			*data;
-	int				a;
+    t_philo         *philo;
+    t_data          *data;
+    pid_t           pid;
+	int i = 1;
+    int             status;
 	sem_t			*print;
+	sem_t			*forks;
 
-	a = 0;
-	sem_init(&print, 1, 1);
-	if (check_av_ac(ac, av))
-		return (0);
-	else
-	{
-		data = ft_new_data(av, print, &a);
-		philo = creat_philos(av, data);
-		while (data->i++ <= ft_atoi(av[1]))
-		{
-			philo->eated = get_time();
-			pthread_create(&philo->thread, NULL, philosopher_routine, philo);
-			philo1 = philo;
-			pthread_detach(philo1->thread);
-			philo = philo ->next;
-		}
-		check_end(philo, av, data, &a);
-		the_destroyer(data, philo);
+	sem_unlink("/sem_fork");
+	forks = sem_open("/sem_fork", O_CREAT, 0666, ft_atoi(av[1]));
+	sem_unlink("/sem_print");
+	print = sem_open("/sem_print", O_CREAT,  0666, 1);
+
+    if (check_av_ac(ac, av))
+        return (0);
+    else
+    {
+        data = ft_new_data(av);
+        philo = creat_philos(av, data);
+        while (i <= atoi(av[1]))
+        {
+            pid = fork();
+            if (pid == 0)
+				philosopher_routine(philo, forks, print);
+			i++;
+            philo = philo->next;
+        }
 	}
+	waitpid(-1, &status, 0);
 }

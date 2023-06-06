@@ -6,7 +6,7 @@
 /*   By: sbadr <sbadr@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/10 20:02:23 by sbadr             #+#    #+#             */
-/*   Updated: 2023/05/28 21:08:40 by sbadr            ###   ########.fr       */
+/*   Updated: 2023/06/05 21:58:33 by sbadr            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,6 @@ t_data	*ft_new_data(char **av, pthread_mutex_t print, int *a)
 int	main(int ac, char **av)
 {
 	t_philo			*philo;
-	t_philo			*philo1;
 	t_data			*data;
 	int				a;
 	pthread_mutex_t	print;
@@ -98,8 +97,8 @@ int	main(int ac, char **av)
 		{
 			philo->eated = get_time();
 			pthread_create(&philo->thread, NULL, philosopher_routine, philo);
-			philo1 = philo;
-			pthread_detach(philo1->thread);
+			pthread_detach(philo->thread);
+			// usleep(100);
 			philo = philo ->next;
 		}
 		check_end(philo, av, data, &a);
