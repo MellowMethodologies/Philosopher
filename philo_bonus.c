@@ -6,7 +6,7 @@
 /*   By: sbadr <sbadr@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/28 21:50:43 by sbadr             #+#    #+#             */
-/*   Updated: 2023/06/06 16:11:38 by sbadr            ###   ########.fr       */
+/*   Updated: 2023/06/06 21:00:12 by sbadr            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ long long	get_time(void)
 	return (time_in_mill);
 }
 
-void	check_end(t_philo *philo, sem_t *print)
+void	check_end(t_philo *philo, sem_t *print, sem_t *fork)
 {
 	int	i;
 
@@ -37,19 +37,21 @@ void	check_end(t_philo *philo, sem_t *print)
 	}
 	else if (philo->data->eat && philo->data->eating_times > philo->data->eat)
 	{
-		sem_wait(print);
-		exit(0);
+		// sem_wait(print);
+		sem_post(fork);
+		sem_post(fork);
+		exit(1);
 	}
 }
 
-void	ft_sleep(long long sl, t_philo *philo, sem_t *print)
+void	ft_sleep(long long sl, t_philo *philo, sem_t *print, sem_t *fork)
 {
 	long long	time;
 
 	time = get_time();
 	while (get_time() - time < sl)
 	{
-		check_end(philo, print);
+		check_end(philo, print, fork);
 		usleep(100);
 	}
 }
@@ -80,16 +82,16 @@ void	philosopher_routine(t_philo *philo, sem_t *fork, sem_t *print)
 	{
 		ft_actions(philo, 0, fork, print);
 		while (philo->data->philos_nb == 1)
-			check_end(philo, print);
+			check_end(philo, print, fork);
 		ft_actions(philo, 0, fork, print);
 		philo->data->eating_times++;
 		ft_actions(philo, 1, fork, print);
 		philo->eated = get_time();
-		ft_sleep(philo->data->time_to_eat, philo, print);
+		ft_sleep(philo->data->time_to_eat, philo, print, fork);
 		sem_post(fork);
 		sem_post(fork);
 		ft_actions(philo, 2, fork, print);
-		ft_sleep(philo->data->time_to_sleep, philo, print);
+		ft_sleep(philo->data->time_to_sleep, philo, print, fork);
 		ft_actions(philo, 3, fork, print);
 	}
 }
@@ -158,6 +160,7 @@ int main(int ac, char **av)
     t_data          *data;
     pid_t           pid;
 	int i = 1;
+	int a = 0;
     int             status;
 	sem_t			*print;
 	sem_t			*forks;
@@ -175,12 +178,30 @@ int main(int ac, char **av)
         philo = creat_philos(av, data);
         while (i <= atoi(av[1]))
         {
-            pid = fork();
-            if (pid == 0)
+            philo->pid = fork();
+            if (philo->pid == 0)
 				philosopher_routine(philo, forks, print);
 			i++;
             philo = philo->next;
         }
+	}
+	i = 1;
+    while (i <= atoi(av[1]) && a != -1)
+	{
+		waitpid(philo->pid, &status, 0);
+		if (WIFEXITED(status) == 1)
+		{
+			puts("hello");
+			a++;
+		}
+		else if (WIFEXITED(status) == 0){
+			a = -1;}
+		if (a == data->eat)
+		{
+			exit(0);
+		}
+		i++;
+		philo = philo->next;
 	}
 	waitpid(-1, &status, 0);
 }

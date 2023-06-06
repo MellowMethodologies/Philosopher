@@ -6,7 +6,7 @@
 /*   By: sbadr <sbadr@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/16 14:45:10 by sbadr             #+#    #+#             */
-/*   Updated: 2023/05/28 20:54:54 by sbadr            ###   ########.fr       */
+/*   Updated: 2023/06/06 20:30:45 by sbadr            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ typedef struct philo{
 	long long		eated;
 	int				is_alive;
 	t_data			*data;
+	pid_t pid;
 	pthread_mutex_t	fork;
 	struct philo	*next;
 }t_philo;
