@@ -6,7 +6,7 @@
 /*   By: sbadr <sbadr@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/16 14:45:10 by sbadr             #+#    #+#             */
-/*   Updated: 2023/06/07 12:12:33 by sbadr            ###   ########.fr       */
+/*   Updated: 2023/06/07 17:58:01 by sbadr            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,10 @@ typedef struct philo{
 	struct philo	*next;
 }t_philo;
 
+long long	get_time(void);
+void		check_end(t_philo *philo, sem_t *print, sem_t *fork);
+void		ft_sleep(long long sl, t_philo *philo, sem_t *print, sem_t *fork);
+void		ft_actions(t_philo *philo, int action, sem_t *fork, sem_t *print);
 t_philo		*ft_new(t_data *data, long long start_time);
 int			ft_atoi(char *str);
 int			check_av_ac(int ac, char **av);

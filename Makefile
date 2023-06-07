@@ -1,11 +1,11 @@
 CC = cc #-fsanitize=thread -g
-SRCS = philo.c philo_utils.c ft_atoi.c routine.c
-SRCS_BONUS = philo_bonus.c ft_atoi.c# philo_utils_bonus.c# #routine_bonus.c#
+SRCS = philo/philo.c philo/philo_utils.c philo/ft_atoi.c philo/routine.c
+SRCS_BONUS = phlo_bonus/philo_bonus.c phlo_bonus/ft_atoi.c phlo_bonus/philo_utils_bonus.c# #routine_bonus.c#
 CFLAGS = -Wall -Wextra -Werror -fsanitize=address -g
 OBJS = $(SRCS:.c=.o)
 OBJS_BONUS = $(SRCS_BONUS:.c=.o)
-NAME = philo
-NAME_BONUS = philo_bonus
+NAME = philos
+NAME_BONUS = philos_bonus
 
 all: $(NAME)
 
