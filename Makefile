@@ -1,7 +1,7 @@
-CC = cc
+CC = cc #-fsanitize=thread -g
 SRCS = philo.c philo_utils.c ft_atoi.c routine.c
 SRCS_BONUS = philo_bonus.c ft_atoi.c# philo_utils_bonus.c# #routine_bonus.c#
-CFLAGS = -Wall -Wextra -Werror #-fsanitize=thread -g
+CFLAGS = -Wall -Wextra -Werror -fsanitize=address -g
 OBJS = $(SRCS:.c=.o)
 OBJS_BONUS = $(SRCS_BONUS:.c=.o)
 NAME = philo

@@ -6,7 +6,7 @@
 /*   By: sbadr <sbadr@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/16 14:45:10 by sbadr             #+#    #+#             */
-/*   Updated: 2023/06/06 15:04:10 by sbadr            ###   ########.fr       */
+/*   Updated: 2023/06/07 12:12:33 by sbadr            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ typedef struct data{
 	int				is_dead_yet;
 	int				i;
 	long long		eat;
+	sem_t			*print;
+	sem_t			*forks;
 	int				eating_times;
 }				t_data;
 
